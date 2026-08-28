@@ -32,7 +32,7 @@ export default async function LeadPage({
           {brief.findings.length} findings for a {brief.title.toLowerCase()} at {brief.company}
         </h2>
 
-        <div className="mt-10 space-y-10">
+        <div className="mt-10 space-y-5">
           {(() => {
             const shownProductIds = new Set<string>();
             return brief.findings.map((finding, i) => {
