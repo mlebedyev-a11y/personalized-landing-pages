@@ -1,26 +1,38 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Paper + ink */
+  --paper: #ffffff;
+  --ink: #1f2123;
+  --ink-dim: rgba(31, 33, 35, 0.6);
+  --ink-faint: rgba(31, 33, 35, 0.4);
+
+  /* Flexciton brand */
+  --signal: #4164ff; /* primary */
+  --field: #ecefff; /* secondary tint */
+  --deep: #131e4c; /* dark navy */
+  --deep-ink: rgba(255, 255, 255, 0.7);
+
+  /* Structure */
+  --line: #e3e5ea;
+  --line-on-deep: rgba(255, 255, 255, 0.16);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-background: var(--paper);
+  --color-foreground: var(--ink);
+  --color-brand-primary: var(--signal);
+  --color-brand-secondary: var(--field);
+  --color-brand-link: var(--deep);
+  --color-line: var(--line);
+  --font-sans: var(--font-plex-sans), "Supreme", Arial, Helvetica, sans-serif;
+  --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, monospace;
+  --radius-brand: 2px;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01" 1;
 }
