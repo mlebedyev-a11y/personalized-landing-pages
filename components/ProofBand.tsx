@@ -17,8 +17,8 @@ export function ProofBand({
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -right-32 bottom-0 h-80 w-80 rounded-full opacity-[0.16] blur-3xl"
-        style={{ background: "radial-gradient(circle, #00D4C8 0%, transparent 70%)" }}
+        className="pointer-events-none absolute -right-32 bottom-0 h-80 w-80 rounded-full opacity-[0.12] blur-3xl"
+        style={{ background: "radial-gradient(circle, #8FA0FF 0%, transparent 70%)" }}
       />
 
       <div className="relative mx-auto max-w-3xl px-6 py-16 text-white">
@@ -36,7 +36,7 @@ export function ProofBand({
                 key={i}
                 className="rounded-[6px] border border-white/10 bg-white/[0.06] px-4 py-4 backdrop-blur-sm"
               >
-                <p className="font-mono text-2xl font-medium text-[#5FF0E6] sm:text-[1.75rem]">{stat.value}</p>
+                <p className="font-mono text-2xl font-medium text-[#8FA0FF] sm:text-[1.75rem]">{stat.value}</p>
                 <p className="mt-1 text-xs leading-snug text-white/60">{stat.label}</p>
               </div>
             ))}

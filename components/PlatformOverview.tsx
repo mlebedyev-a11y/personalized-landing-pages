@@ -1,13 +1,10 @@
 import type { PlatformOverviewEntry } from "@/lib/types";
 import { PRODUCT_ICONS } from "@/lib/taxonomy";
 
-const TIER_STYLE: Record<
-  PlatformOverviewEntry["tier"],
-  { label: string; bg: string; fg: string; accent: string }
-> = {
-  primary: { label: "Primary fit", bg: "#4164FF", fg: "#FFFFFF", accent: "#4164FF" },
-  relevant: { label: "Relevant next", bg: "#ECEFFF", fg: "#131E4C", accent: "#7C3AED" },
-  adjacent: { label: "Platform context", bg: "#F1F4F7", fg: "#64748B", accent: "#94A3B8" },
+const TIER_STYLE: Record<PlatformOverviewEntry["tier"], { label: string; bg: string; fg: string }> = {
+  primary: { label: "Primary fit", bg: "#4164FF", fg: "#FFFFFF" },
+  relevant: { label: "Relevant next", bg: "#ECEFFF", fg: "#131E4C" },
+  adjacent: { label: "Platform context", bg: "#F1F4F7", fg: "#64748B" },
 };
 
 export function PlatformOverview({ entries, company }: { entries: PlatformOverviewEntry[]; company: string }) {
@@ -31,15 +28,11 @@ export function PlatformOverview({ entries, company }: { entries: PlatformOvervi
           return (
             <div
               key={product.id}
-              className="grid gap-3 py-5 pl-3 -ml-3 transition-colors hover:bg-brand-secondary/25 sm:grid-cols-[13rem_1fr] sm:gap-6 sm:rounded-[6px] sm:pr-3 sm:-mr-3"
-              style={{ borderLeft: `3px solid ${tierStyle.accent}` }}
+              className="grid gap-3 py-5 transition-colors hover:bg-brand-secondary/25 sm:grid-cols-[13rem_1fr] sm:gap-6 sm:rounded-[6px] sm:px-3 sm:-mx-3"
             >
               <div className="flex items-start gap-3">
-                <div
-                  className="mt-0.5 flex h-8 w-8 flex-none items-center justify-center rounded-full"
-                  style={{ backgroundColor: `${tierStyle.accent}1f` }}
-                >
-                  {Icon && <Icon size={16} strokeWidth={2} style={{ color: tierStyle.accent }} />}
+                <div className="mt-0.5 flex h-8 w-8 flex-none items-center justify-center rounded-full bg-brand-secondary">
+                  {Icon && <Icon size={16} strokeWidth={2} className="text-brand-link" />}
                 </div>
                 <div>
                   <p className="text-[15px] font-medium text-foreground">{product.name}</p>
