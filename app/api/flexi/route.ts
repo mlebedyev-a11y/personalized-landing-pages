@@ -127,7 +127,11 @@ export async function POST(request: Request) {
           .filter((b): b is Anthropic.TextBlock => b.type === "text")
           .map((b) => b.text)
           .join("");
-        void postFlexiTranscriptToSlack(brief, lastUserMessage, answer, thread);
+        // Awaited, not fire-and-forget: on Vercel the function is frozen the
+        // moment the response finishes, so an un-awaited post never runs. The
+        // answer text is already flushed to the client above, so this only
+        // delays the stream's close by the length of one Slack call.
+        await postFlexiTranscriptToSlack(brief, lastUserMessage, answer, thread);
       } catch (err) {
         console.error("Flexi stream error", err);
         controller.enqueue(
