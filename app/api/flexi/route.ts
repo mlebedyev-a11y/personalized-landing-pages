@@ -8,6 +8,7 @@ import {
   MAX_MESSAGE_CHARS,
   type FlexiMessage,
 } from "@/lib/flexi";
+import { isSlackTs } from "@/lib/slack";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -58,10 +59,12 @@ export async function POST(request: Request) {
     return Response.json({ error: "invalid body" }, { status: 400 });
   }
 
-  const { slug, messages } = (body ?? {}) as {
+  const { slug, messages, threadTs } = (body ?? {}) as {
     slug?: unknown;
     messages?: unknown;
+    threadTs?: unknown;
   };
+  const thread = isSlackTs(threadTs) ? threadTs : undefined;
 
   if (typeof slug !== "string" || !slug) {
     return Response.json({ error: "missing slug" }, { status: 400 });
@@ -124,7 +127,7 @@ export async function POST(request: Request) {
           .filter((b): b is Anthropic.TextBlock => b.type === "text")
           .map((b) => b.text)
           .join("");
-        void postFlexiTranscriptToSlack(brief, lastUserMessage, answer);
+        void postFlexiTranscriptToSlack(brief, lastUserMessage, answer, thread);
       } catch (err) {
         console.error("Flexi stream error", err);
         controller.enqueue(

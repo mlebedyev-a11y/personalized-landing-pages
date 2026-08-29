@@ -8,6 +8,16 @@ const MAX_USER_TURNS = 15;
 const CAP_NOTICE =
   "That's a good place to pick this up with the team — reply to the email this page came from and they'll take it from here.";
 
+// The Slack message id of this visit's "page viewed" notification, stashed by
+// ViewTracker. Sent with each chat request so the transcript threads under it.
+function readThreadTs(slug: string): string | null {
+  try {
+    return sessionStorage.getItem(`flexciton:thread:${slug}`);
+  } catch {
+    return null;
+  }
+}
+
 type Props = { slug: string; firstName: string; company: string };
 
 export function FlexiWidget({ slug, firstName, company }: Props) {
@@ -66,7 +76,7 @@ export function FlexiWidget({ slug, firstName, company }: Props) {
       const res = await fetch("/api/flexi", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, messages: next }),
+        body: JSON.stringify({ slug, messages: next, threadTs: readThreadTs(slug) }),
       });
 
       if (!res.ok || !res.body) {

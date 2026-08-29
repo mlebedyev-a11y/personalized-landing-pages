@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getBrief } from "@/lib/leads";
+import { postSlackMessage } from "@/lib/slack";
 
 export async function POST(request: Request) {
   let slug: unknown;
@@ -18,23 +19,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "unknown slug" }, { status: 404 });
   }
 
-  const webhookUrl = process.env.SLACK_WEBHOOK_URL;
-  if (!webhookUrl) {
-    console.warn("SLACK_WEBHOOK_URL not set; skipping Slack notification for", slug);
-    return NextResponse.json({ ok: true, notified: false });
-  }
-
   const text = `🔔 *${brief.name}* (${brief.title}, ${brief.company}) just opened their personalized page: /l/${brief.slug}`;
 
-  try {
-    const res = await fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
-    });
-    return NextResponse.json({ ok: true, notified: res.ok });
-  } catch (err) {
-    console.error("Slack notify failed", err);
-    return NextResponse.json({ ok: true, notified: false });
-  }
+  // The returned `ts` is this message's id — the client stashes it so Flexi Q&A
+  // from the same visit can be posted as threaded replies under this notification.
+  const posted = await postSlackMessage(text);
+  return NextResponse.json({
+    ok: true,
+    notified: posted !== null,
+    ts: posted?.ts ?? null,
+  });
 }

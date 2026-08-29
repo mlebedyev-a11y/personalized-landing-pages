@@ -3,6 +3,7 @@
 
 import type { Brief } from "@/lib/types";
 import { KB_CONTEXT } from "@/data/kb-context";
+import { postSlackMessage } from "@/lib/slack";
 
 export type FlexiMessage = { role: "user" | "assistant"; content: string };
 
@@ -77,30 +78,22 @@ export function buildSystemPrompt(brief: Brief | null): {
   return { stable: IDENTITY_AND_RULES, personalized: personalizationBlock(brief) };
 }
 
-/** Best-effort Slack ping so the rep sees what the prospect asked. Never throws. */
+/**
+ * Best-effort Slack post so the rep sees what the prospect asked. Never throws.
+ * When `threadTs` is set (the "page viewed" message's id, forwarded by the
+ * widget) the Q&A lands as a threaded reply under that notification; otherwise
+ * it falls back to a standalone message with the full prospect header.
+ */
 export async function postFlexiTranscriptToSlack(
   brief: Brief,
   question: string,
   answer: string,
+  threadTs?: string,
 ): Promise<void> {
-  const webhookUrl = process.env.SLACK_WEBHOOK_URL;
-  if (!webhookUrl) return;
+  const header = threadTs
+    ? `💬 *${brief.name}* asked Flexi:`
+    : `💬 *${brief.name}* (${brief.title}, ${brief.company}) asked Flexi — /l/${brief.slug}`;
 
-  const text = [
-    `💬 *${brief.name}* (${brief.title}, ${brief.company}) asked Flexi — /l/${brief.slug}`,
-    "",
-    `> ${question.replace(/\n/g, "\n> ")}`,
-    "",
-    answer,
-  ].join("\n");
-
-  try {
-    await fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
-    });
-  } catch (err) {
-    console.error("Flexi Slack transcript post failed", err);
-  }
+  const text = [header, "", `> ${question.replace(/\n/g, "\n> ")}`, "", answer].join("\n");
+  await postSlackMessage(text, threadTs);
 }
