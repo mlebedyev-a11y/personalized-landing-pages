@@ -9,7 +9,22 @@
 // The bot user needs chat:write for its channel (chat:write.public covers any
 // public channel without an invite).
 
+import type { Brief } from "@/lib/types";
+
 const CHAT_POST_MESSAGE = "https://slack.com/api/chat.postMessage";
+
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
+  "https://personalized-landing-pages-six.vercel.app";
+
+/**
+ * Thread-root text for a prospect page — one Slack thread per slug, reused
+ * whether the first event is a page view or a chat message. Verb-less so it
+ * reads sensibly either way.
+ */
+export function threadRootText(brief: Brief): string {
+  return `🔔 *${brief.name}* — ${brief.title}, ${brief.company}\n${SITE_URL}/l/${brief.slug}`;
+}
 
 /**
  * Post a message to the configured channel. Pass `threadTs` to reply in-thread
@@ -74,7 +89,24 @@ export async function postSlackMessage(
   }
 }
 
-/** A Slack message `ts` looks like "1701234567.123456". */
-export function isSlackTs(x: unknown): x is string {
-  return typeof x === "string" && /^\d{10}\.\d{2,}$/.test(x);
+/** Edit an existing message (bot-token path only). Used to fold the first
+ *  question into the thread root. Best-effort; never throws. */
+export async function updateSlackMessage(ts: string, text: string): Promise<void> {
+  const token = process.env.SLACK_BOT_TOKEN;
+  const channel = process.env.SLACK_CHANNEL_ID;
+  if (!token || !channel) return;
+  try {
+    const res = await fetch("https://slack.com/api/chat.update", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ channel, ts, text }),
+    });
+    const data = (await res.json()) as { ok: boolean; error?: string };
+    if (!data.ok) console.error("Slack chat.update failed:", data.error);
+  } catch (err) {
+    console.error("Slack update error", err);
+  }
 }

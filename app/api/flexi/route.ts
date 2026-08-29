@@ -8,7 +8,6 @@ import {
   MAX_MESSAGE_CHARS,
   type FlexiMessage,
 } from "@/lib/flexi";
-import { isSlackTs } from "@/lib/slack";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -59,12 +58,10 @@ export async function POST(request: Request) {
     return Response.json({ error: "invalid body" }, { status: 400 });
   }
 
-  const { slug, messages, threadTs } = (body ?? {}) as {
+  const { slug, messages } = (body ?? {}) as {
     slug?: unknown;
     messages?: unknown;
-    threadTs?: unknown;
   };
-  const thread = isSlackTs(threadTs) ? threadTs : undefined;
 
   if (typeof slug !== "string" || !slug) {
     return Response.json({ error: "missing slug" }, { status: 400 });
@@ -131,7 +128,7 @@ export async function POST(request: Request) {
         // moment the response finishes, so an un-awaited post never runs. The
         // answer text is already flushed to the client above, so this only
         // delays the stream's close by the length of one Slack call.
-        await postFlexiTranscriptToSlack(brief, lastUserMessage, answer, thread);
+        await postFlexiTranscriptToSlack(brief, lastUserMessage, answer);
       } catch (err) {
         console.error("Flexi stream error", err);
         controller.enqueue(

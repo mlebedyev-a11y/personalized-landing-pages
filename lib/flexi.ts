@@ -3,7 +3,8 @@
 
 import type { Brief } from "@/lib/types";
 import { KB_CONTEXT } from "@/data/kb-context";
-import { postSlackMessage } from "@/lib/slack";
+import { postSlackMessage, updateSlackMessage, threadRootText } from "@/lib/slack";
+import { getOrCreateThread, claimFirstQuestion } from "@/lib/thread-store";
 
 export type FlexiMessage = { role: "user" | "assistant"; content: string };
 
@@ -80,20 +81,36 @@ export function buildSystemPrompt(brief: Brief | null): {
 
 /**
  * Best-effort Slack post so the rep sees what the prospect asked. Never throws.
- * When `threadTs` is set (the "page viewed" message's id, forwarded by the
- * widget) the Q&A lands as a threaded reply under that notification; otherwise
- * it falls back to a standalone message with the full prospect header.
+ * Resolves (or lazily creates) the prospect's single Slack thread and posts the
+ * Q&A as a reply in it; on the very first question, folds that question into the
+ * thread root. Falls back to a flat standalone message when the thread store or
+ * bot token isn't configured.
  */
 export async function postFlexiTranscriptToSlack(
   brief: Brief,
   question: string,
   answer: string,
-  threadTs?: string,
 ): Promise<void> {
-  const header = threadTs
-    ? `💬 *${brief.name}* asked Flexi:`
-    : `💬 *${brief.name}* (${brief.title}, ${brief.company}) asked Flexi — /l/${brief.slug}`;
+  const threadTs = await getOrCreateThread(brief.slug, threadRootText(brief));
 
-  const text = [header, "", `> ${question.replace(/\n/g, "\n> ")}`, "", answer].join("\n");
-  await postSlackMessage(text, threadTs);
+  const reply = [
+    `💬 *${brief.firstName}:* ${question}`,
+    "",
+    answer,
+  ].join("\n");
+
+  if (!threadTs) {
+    // No thread store / bot token: keep the old flat behaviour.
+    await postSlackMessage(`${threadRootText(brief)}\n\n${reply}`);
+    return;
+  }
+
+  await postSlackMessage(reply, threadTs);
+
+  if (await claimFirstQuestion(brief.slug)) {
+    await updateSlackMessage(
+      threadTs,
+      `${threadRootText(brief)}\n\n💬 *First question:* ${question}`,
+    );
+  }
 }

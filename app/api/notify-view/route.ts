@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getBrief } from "@/lib/leads";
-import { postSlackMessage } from "@/lib/slack";
+import { postSlackMessage, threadRootText } from "@/lib/slack";
+import { getOrCreateThread } from "@/lib/thread-store";
 
 export async function POST(request: Request) {
   let slug: unknown;
@@ -19,14 +20,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "unknown slug" }, { status: 404 });
   }
 
-  const text = `🔔 *${brief.name}* (${brief.title}, ${brief.company}) just opened their personalized page: /l/${brief.slug}`;
+  // Create the prospect's single Slack thread on the first-ever view (idempotent
+  // — repeat views find the existing thread and do nothing). The thread root is
+  // the "opened their page" notification.
+  const threadTs = await getOrCreateThread(brief.slug, threadRootText(brief));
 
-  // The returned `ts` is this message's id — the client stashes it so Flexi Q&A
-  // from the same visit can be posted as threaded replies under this notification.
-  const posted = await postSlackMessage(text);
-  return NextResponse.json({
-    ok: true,
-    notified: posted !== null,
-    ts: posted?.ts ?? null,
-  });
+  let notified = threadTs !== null;
+  if (!threadTs) {
+    // No thread store / bot token: fall back to a flat one-off ping.
+    const posted = await postSlackMessage(
+      `🔔 *${brief.name}* (${brief.title}, ${brief.company}) opened their personalized page — /l/${brief.slug}`,
+    );
+    notified = posted !== null;
+  }
+
+  return NextResponse.json({ ok: true, notified });
 }
