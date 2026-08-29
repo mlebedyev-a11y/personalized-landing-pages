@@ -5,6 +5,7 @@ import { Finding } from "@/components/Finding";
 import { PlatformOverview } from "@/components/PlatformOverview";
 import { ProofBand } from "@/components/ProofBand";
 import { ViewTracker } from "@/components/ViewTracker";
+import { FlexiWidget } from "@/components/FlexiWidget";
 
 export async function generateStaticParams() {
   return getAllSlugs().map((slug) => ({ slug }));
@@ -22,6 +23,7 @@ export default async function LeadPage({
   return (
     <main className="flex-1 bg-background">
       <ViewTracker slug={brief.slug} />
+      <FlexiWidget slug={brief.slug} firstName={brief.firstName} company={brief.company} />
       <Hero brief={brief} />
 
       <section className="mx-auto max-w-3xl px-6 py-16">

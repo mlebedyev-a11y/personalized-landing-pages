@@ -1,5 +1,20 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Flexi chatbot
+
+Each `/l/<slug>` page carries **Flexi**, a chat widget that answers prospect questions
+grounded in the four KB docs at the project root.
+
+- `npm run build:kb` bakes those docs into `data/kb-context.ts` (committed, because the
+  root docs are outside this repo). It also runs as part of `npm run match` — re-run and
+  commit whenever a KB doc changes.
+- Env vars live in `.env` (git-ignored): `ANTHROPIC_API_KEY` (required — get one at
+  console.anthropic.com) and `SLACK_WEBHOOK_URL` (optional — reused from the
+  view-notification feature to post Flexi transcripts to Slack). Set the same values in
+  the Vercel project env for preview/production.
+- API route: `app/api/flexi/route.ts` (Node serverless, streams Claude Haiku 4.5, per-IP
+  rate limited). Widget: `components/FlexiWidget.tsx`.
+
 ## Getting Started
 
 First, run the development server:

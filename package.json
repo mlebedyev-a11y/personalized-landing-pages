@@ -7,10 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "match": "tsx scripts/match.ts && tsx scripts/build-html.ts",
+    "match": "tsx scripts/build-kb.ts && tsx scripts/match.ts && tsx scripts/build-html.ts",
+    "build:kb": "tsx scripts/build-kb.ts",
     "build:html": "tsx scripts/build-html.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.122.0",
     "lucide-react": "^1.34.0",
     "next": "16.3.3",
     "papaparse": "^5.7.0",
